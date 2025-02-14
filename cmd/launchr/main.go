@@ -1,5 +1,5 @@
 // Release executes Launchr application.
-release main
+package main
 
 import (
 	"github.com/launchrctl/launchr"
