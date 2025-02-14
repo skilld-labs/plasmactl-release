@@ -1,2 +1,2 @@
-# plasmactl-package
-Launchrctl plugin to package artifacts
+# plasmactl-release
+Launchrctl plugin to release artifacts
