@@ -5,6 +5,9 @@ import (
 	"context"
 	"embed"
 	"io/fs"
+
+	"github.com/launchrctl/launchr"
+	"github.com/launchrctl/launchr/pkg/action"
 )
 
 // Embed an action directory. Tree:
@@ -15,6 +18,10 @@ import (
 //
 //go:embed action
 var actionfs embed.FS
+
+func init() {
+	launchr.RegisterPlugin(&Plugin{})
+}
 
 // Plugin is [launchr.Plugin] providing action.
 type Plugin struct{}
@@ -31,7 +38,7 @@ func (p *Plugin) DiscoverActions(_ context.Context) ([]*action.Action, error) {
 	if err != nil {
 		return nil, err
 	}
-	a, err := action.NewYAMLFromFS("my_embed_action", subfs)
+	a, err := action.NewYAMLFromFS("platform:release", subfs)
 	if err != nil {
 		return nil, err
 	}
