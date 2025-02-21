@@ -1,4 +1,4 @@
-working_directory: "{{ .action_dir }}"
+working_directory: "{{ .actions_base_dir }}"
 action:
   title: Release
   description: Create new git tag with generated changelog
