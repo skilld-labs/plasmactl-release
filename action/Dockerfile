@@ -10,4 +10,5 @@ RUN apk upgrade --update-cache -a && apk add \
     git-cliff && \
     rm -fr /var/cache/apk/* && \
     git config --global user.name "${GIT_AUTHOR_NAME}" && \
-    git config --global user.email "${GIT_AUTHOR_EMAIL}"
+    git config --global user.email "${GIT_AUTHOR_EMAIL}" && \
+    git config --global credential.helper "cache --timeout=259200000000"
