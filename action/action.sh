@@ -36,7 +36,7 @@ semver_compare() {
 
 semver_get_latest() {
   # Get list of tags
-  tags=$(git tag)
+  tags=$(git ls-remote --tags origin | grep -v '\^{}' | awk '{print $2}' | sed 's|refs/tags/||')
 
   # Filter tags that conform to SemVer
   filtered_tags=$(echo "$tags" | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$')
@@ -163,7 +163,7 @@ fi
 
 echo "Creating tag: ${NEW_TAG}"
 # Creation of new tag including changelog as description
-git tag -a $NEW_TAG -m "$changelog"
+git tag -f -a $NEW_TAG -m "$changelog"
 echo "Press 'Enter' to push new tag to repo"
 read -r
 git push origin tag $NEW_TAG
