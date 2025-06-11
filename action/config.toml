@@ -15,8 +15,8 @@ body = """
 {% for group, commits in commits | group_by(attribute="group") %}
     {%- if group != 'common' -%}{% continue %}{%- endif -%}
     {%- for commit in commits -%}
-        - {{ commit.id | truncate(length=13, end="") }} {{ commit.message | upper_first }}\
-    {%- endfor %}
+        - {{ commit.id | truncate(length=13, end="") }} {{ commit.message | upper_first | replace(from="\n", to=" ") }}
+    {% endfor %}
 {% endfor %}\n
 """
 # template for the changelog footer
