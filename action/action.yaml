@@ -12,6 +12,20 @@ action:
       description: Option to preview changelog and tag
       type: boolean
       default: false
+    - name: user
+      title: git user
+      default: ""
+      process:
+        - processor: keyring.GetKeyValue
+          options:
+            key: release_git_user
+    - name: password
+      title: git password
+      default: ""
+      process:
+        - processor: keyring.GetKeyValue
+          options:
+            key: release_git_password
 
 runtime:
   type: container
@@ -26,4 +40,5 @@ runtime:
     - /action/action.sh
     - "{{ .tag }}"
     - "{{ .preview }}"
-
+    - "{{ .user }}"
+    - "{{ .password }}"

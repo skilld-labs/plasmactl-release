@@ -39,6 +39,23 @@ remote_exists() {
   git remote get-url origin >/dev/null 2>&1
 }
 
+# Function to ensure latest tags are available from remote
+ensure_latest_tags() {
+  if remote_exists; then
+    echo "Fetching latest tags from remote..." >&2
+    if git fetch --tags origin 2>/dev/null; then
+      echo "Tags synchronized with remote." >&2
+      return 0
+    else
+      echo "Warning: Failed to fetch tags from remote." >&2
+      return 1
+    fi
+  else
+    echo "Warning: No remote found." >&2
+    return 1
+  fi
+}
+
 # Get local tags and filter for SemVer
 get_local_tags() {
   if ! tags=$(git tag -l 2>/dev/null); then
@@ -51,26 +68,10 @@ get_local_tags() {
 }
 
 semver_get_latest() {
-  # Check if remote exists and try to get remote tags first
-  if remote_exists; then
-    if tags=$(git ls-remote --tags origin 2>/dev/null); then
-      # Process remote tags (remove refs/tags/ prefix)
-      tags=$(echo "$tags" | grep -v '\^{}' | awk '{print $2}' | sed 's|refs/tags/||')
-      # Filter tags that conform to SemVer
-      filtered_tags=$(echo "$tags" | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$')
-    else
-      echo "Warning: Could not fetch remote tags. Checking local tags..." >&2
-      filtered_tags=$(get_local_tags)
-      if [[ $? -ne 0 ]]; then
-        return 1
-      fi
-    fi
-  else
-    echo "Warning: No 'origin' remote found. Checking local tags..." >&2
-    filtered_tags=$(get_local_tags)
-    if [[ $? -ne 0 ]]; then
-      return 1
-    fi
+  # Get local tags and filter for SemVer
+  filtered_tags=$(get_local_tags)
+  if [[ $? -ne 0 ]]; then
+    return 1
   fi
 
   # Initialize highest version variable
@@ -98,6 +99,23 @@ semver_get_latest() {
 
 CUSTOM_TAG=${1}
 PREVIEW=${2:-false}
+USERNAME=${3}
+PASSWORD=${4}
+
+# Create temporary askpass script
+ASKPASS_SCRIPT=$(mktemp)
+cat > "$ASKPASS_SCRIPT" << EOF
+#!/bin/bash
+case "\$1" in
+    *Username*) echo "$USERNAME" ;;
+    *Password*) echo "$PASSWORD" ;;
+esac
+EOF
+
+chmod +x "$ASKPASS_SCRIPT"
+
+# Export the askpass script
+export GIT_ASKPASS="$ASKPASS_SCRIPT"
 
 current_branch=$(git rev-parse --abbrev-ref HEAD)
 # Check if the current branch is master or main
@@ -107,6 +125,7 @@ then
   exit 1
 fi
 
+ensure_latest_tags
 latest_tag=$(semver_get_latest)
 if [[ -z "${latest_tag}" ]]; then
   echo "No valid SemVer tags found. Creating initial tag..."
@@ -213,3 +232,7 @@ git tag -f -a $NEW_TAG -m "$changelog"
 echo "Press 'Enter' to push new tag to repo"
 read -r
 git push origin tag $NEW_TAG
+
+# Clean up
+rm -f "$ASKPASS_SCRIPT"
+unset GIT_ASKPASS

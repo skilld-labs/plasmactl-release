@@ -6,6 +6,8 @@ import (
 	"embed"
 	"io/fs"
 
+	// Ensure keyring is loaded. Required by release action
+	_ "github.com/launchrctl/keyring"
 	"github.com/launchrctl/launchr"
 	"github.com/launchrctl/launchr/pkg/action"
 )
