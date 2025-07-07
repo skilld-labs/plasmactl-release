@@ -5,8 +5,8 @@ go 1.24.0
 toolchain go1.24.1
 
 require (
-	github.com/launchrctl/keyring v0.6.0
-	github.com/launchrctl/launchr v0.21.1
+	github.com/launchrctl/keyring v0.6.2
+	github.com/launchrctl/launchr v0.21.2
 )
 
 require (
