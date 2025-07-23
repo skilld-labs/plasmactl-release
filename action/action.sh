@@ -1,5 +1,7 @@
 #!/bin/bash
 
+readonly INITIAL_TAG="0.0.0"
+
 # Function to compare two semver versions
 # Returns 1 if $1 > $2, 0 if $1 == $2, -1 if $1 < $2
 semver_compare() {
@@ -130,15 +132,14 @@ latest_tag=$(semver_get_latest)
 if [[ -z "${latest_tag}" ]]; then
   echo "No valid SemVer tags found. Creating initial tag..."
 
-  # Always use 'v' prefix for initial tag (standard convention)
-  latest_tag="v0.0.0"
+  latest_tag="$INITIAL_TAG"
   echo "Using initial tag: $latest_tag"
 else
   echo -e "\nLast tag is: $latest_tag\n"
 fi
 
 # Generate changelog with git-cliff
-if [[ "$latest_tag" == "v0.0.0" ]]; then
+if [[ "$latest_tag" == $INITIAL_TAG ]]; then
   # For initial tag, get all commits
   changelog="$(git cliff --config /action/config.toml)"
 else
@@ -146,7 +147,7 @@ else
 fi
 changelog=$(echo "${changelog}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
-if [[ -z "${changelog}" && "$latest_tag" != "v0.0.0" ]]; then
+if [[ -z "${changelog}" && "$latest_tag" != $INITIAL_TAG ]]; then
   echo "Changelog is empty. Please ensure you have new commits outside latest tag"
   exit 0
 fi
@@ -157,21 +158,21 @@ if [ "$PREVIEW" = true ]; then
   exit 0
 fi
 
-if [[ ${latest_tag:0:1} == "v" ]]; then
-  starts_with_v=true
-else
-  starts_with_v=false
-fi
-
 # Use custom tag or provide choice for user to update.
 if [[ -n "${CUSTOM_TAG}" ]]; then
   NEW_TAG=${CUSTOM_TAG}
 else
   # Handle initial tag case
-  if [[ "$latest_tag" == "v0.0.0" ]]; then
+  if [[ "$latest_tag" == $INITIAL_TAG ]]; then
     # Creating initial release tag
-    NEW_TAG="v0.1.0"
+    NEW_TAG="0.1.0"
   else
+    if [[ ${latest_tag:0:1} == "v" ]]; then
+      starts_with_v=true
+    else
+      starts_with_v=false
+    fi
+
     # strip V from tag
     major=$(echo "$latest_tag" | cut -d'.' -f1)
     major=${major#v}
